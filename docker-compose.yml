@@ -1,11 +1,13 @@
 services:
   backend:
-    build: .
+    image: abhaygehlot/backend:stable
+    container_name: backend
     expose:
       - "8000"
 
   frontend:
-    build: ./frontend
+    image: abhaygehlot/frontend:stable
+    container_name: frontend
     ports:
       - "80:80"
     depends_on:
