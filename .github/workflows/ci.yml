@@ -1,0 +1,97 @@
+name: CI - Build, Test, Push, and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # =========================
+  # CI: BUILD, TEST, PUSH
+  # =========================
+  build-test-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      # -------- BUILD --------
+      - name: Build backend image
+        run: docker build --build-arg GIT_SHA=${{ github.sha }} -t backend .
+
+      - name: Build frontend image
+        run: docker build -t frontend ./frontend
+
+      # -------- CI TEST --------
+      - name: Start containers
+        run: docker compose up -d
+
+      - name: Wait for app to be ready
+        run: |
+          echo "Waiting for app..."
+          for i in {1..15}; do
+            curl --fail --silent http://localhost && echo "✅ App is up!" && break
+            echo "Attempt $i failed, retrying in 3s..."
+            sleep 3
+          done
+
+      - name: Test frontend
+        run: curl --fail http://localhost
+
+      - name: Test backend status endpoint
+        run: curl --fail http://localhost/api/status
+
+      - name: Test backend whoami endpoint
+        run: curl --fail http://localhost/api/whoami
+
+      # -------- PUSH ARTIFACTS --------
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
+            -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Tag images (SHA + stable)
+        run: |
+          docker tag backend abhaygehlot/backend:${{ github.sha }}
+          docker tag frontend abhaygehlot/frontend:${{ github.sha }}
+
+          docker tag backend abhaygehlot/backend:stable
+          docker tag frontend abhaygehlot/frontend:stable
+
+      - name: Push images
+        run: |
+          docker push abhaygehlot/backend:${{ github.sha }}
+          docker push abhaygehlot/backend:stable
+          docker push abhaygehlot/frontend:${{ github.sha }}
+          docker push abhaygehlot/frontend:stable
+
+  # =========================
+  # CD: DEPLOY TO EC2 (SSH AGENT)
+  # =========================
+  deploy:
+    needs: build-test-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+
+      - name: Start ssh-agent and add key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'ENDSSH'
+            cd ~/app
+            docker compose pull
+            docker compose down
+            docker compose up -d
+            echo "✅ Deployed successfully"
+          ENDSSH

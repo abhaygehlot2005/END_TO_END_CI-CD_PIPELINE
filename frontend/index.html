@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DevOps Live — Abhay Gehlot</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --border: #1e1e2e;
+      --accent: #00ff88;
+      --accent2: #0088ff;
+      --accent3: #ff6b35;
+      --text: #e8e8f0;
+      --muted: #555570;
+      --card: #13131f;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 48px 0 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1px;
+    }
+
+    h1 span {
+      color: var(--accent);
+      position: relative;
+    }
+
+    .subtitle {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── CARDS ── */
+    .section { padding: 48px 0; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent2);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover { border-color: var(--accent); }
+
+    /* ── IP CARD ── */
+    .ip-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .ip-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .ip-value {
+      font-family: var(--mono);
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 2px;
+    }
+
+    .ip-sub {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .refresh-btn:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    /* ── STATUS CARD ── */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-top: 0;
+    }
+
+    .status-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .status-item .label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .status-item .value {
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .status-item .value.ok { color: var(--accent); }
+    .status-item .value.sha {
+      color: var(--accent2);
+      font-size: 12px;
+    }
+
+    /* ── PIPELINE ── */
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .pipeline-step {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 16px;
+      position: relative;
+      opacity: 0;
+      transform: translateX(-20px);
+      animation: slideIn 0.4s forwards;
+    }
+
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .pipeline-step:not(:last-child) .step-line {
+      position: absolute;
+      left: 17px;
+      top: 36px;
+      bottom: -16px;
+      width: 2px;
+      background: linear-gradient(var(--accent), var(--accent2));
+      opacity: 0.3;
+    }
+
+    .step-num {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      background: var(--card);
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-num.you {
+      border-color: var(--accent3);
+      color: var(--accent3);
+      box-shadow: 0 0 16px rgba(255,107,53,0.4);
+    }
+
+    .step-content {
+      padding: 6px 0 28px;
+    }
+
+    .step-name {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .step-detail {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── ARCH DIAGRAM ── */
+    .arch {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      padding: 12px 0;
+    }
+
+    .arch-node {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .arch-node .node-icon { font-size: 24px; margin-bottom: 6px; }
+    .arch-node .node-name { font-weight: 700; font-size: 13px; }
+    .arch-node .node-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+    .arch-arrow {
+      font-family: var(--mono);
+      color: var(--accent);
+      font-size: 20px;
+      padding: 0 8px;
+    }
+
+    .arch-note {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: gap;
+      gap: 12px;
+    }
+
+    .footer-sha { color: var(--accent2); }
+
+    /* loading */
+    .loading {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    @media (max-width: 600px) {
+      .ip-card { grid-template-columns: 1fr; }
+      footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <p class="header-tag">▸ Live Deployment · AWS EC2</p>
+    <h1>You just hit a<br><span>real CI/CD pipeline.</span></h1>
+    <p class="subtitle">// push → build → test → package → deploy → you're here</p>
+    <div class="status-bar">
+      <div class="dot"></div>
+      <span id="live-status" style="color: var(--accent);">Connecting to backend...</span>
+    </div>
+  </header>
+
+  <!-- YOUR IP -->
+  <div class="section">
+    <p class="section-label">01 · Your Identity</p>
+    <div class="card">
+      <div class="ip-card">
+        <div>
+          <div class="ip-label">Your IP Address — as seen by the server</div>
+          <div class="ip-value" id="ip-value"><span class="loading">fetching...</span></div>
+          <div class="ip-sub" id="ip-sub"></div>
+        </div>
+        <button class="refresh-btn" onclick="fetchIP()">↻ Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACKEND STATUS -->
+  <div class="section" style="padding-top:0">
+    <p class="section-label">02 · Backend Status</p>
+    <div class="status-grid" id="status-grid">
+      <div class="status-item">
+        <div class="label">Status</div>
+        <div class="value loading" id="s-status">—</div>
+      </div>
+      <div class="status-item">
+        <div class="label">Server</div>
+        <div class="value" id="s-server">—</div>
+      </div>
+      <div class="status-item">
+        <div class="label">Container</div>
+        <div class="value" id="s-container">—</div>
+      </div>
+      <div class="status-item">
+        <div class="label">Deployed SHA</div>
+        <div class="value sha" id="s-sha">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="section" style="padding-top:0">
+    <p class="section-label">03 · How This Page Reached You</p>
+    <div class="card">
+      <div class="pipeline" id="pipeline-steps">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--muted)" class="loading">Loading pipeline data...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="section" style="padding-top:0">
+    <p class="section-label">04 · System Architecture</p>
+    <div class="card">
+      <div class="arch">
+        <div class="arch-node">
+          <div class="node-icon">🌐</div>
+          <div class="node-name">Browser</div>
+          <div class="node-sub">You</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node" style="border-color:#0088ff44">
+          <div class="node-icon">⚡</div>
+          <div class="node-name">Nginx</div>
+          <div class="node-sub">Frontend · Port 80</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node" style="border-color:#00ff8844">
+          <div class="node-icon">🐍</div>
+          <div class="node-name">Python</div>
+          <div class="node-sub">Backend · Internal</div>
+        </div>
+      </div>
+      <p class="arch-note">Backend is never exposed publicly — all traffic flows through Nginx reverse proxy</p>
+    </div>
+  </div>
+
+  <footer>
+    <span>Built by <strong style="color:var(--text)">Abhay Gehlot</strong> · DevOps / Cloud Engineering</span>
+    <span>SHA: <span class="footer-sha" id="footer-sha">—</span></span>
+  </footer>
+
+</div>
+
+<script>
+  async function fetchIP() {
+    const el = document.getElementById('ip-value');
+    const sub = document.getElementById('ip-sub');
+    el.innerHTML = '<span class="loading">fetching...</span>';
+    try {
+      const res = await fetch('/api/whoami');
+      const text = await res.text();
+      const ip = text.replace('Your IP address is ', '').trim();
+      el.textContent = ip;
+      sub.textContent = `Resolved at ${new Date().toLocaleTimeString()}`;
+    } catch (e) {
+      el.textContent = 'Unavailable';
+      el.style.color = '#ff6b35';
+    }
+  }
+
+  async function fetchStatus() {
+    try {
+      const res = await fetch('/api/status');
+      const data = await res.json();
+      document.getElementById('s-status').textContent = data.status.toUpperCase();
+      document.getElementById('s-status').className = 'value ok';
+      document.getElementById('s-server').textContent = data.server;
+      document.getElementById('s-container').textContent = data.container;
+      const sha = data.version === 'local-dev' ? 'local-dev' : data.version.slice(0, 12);
+      document.getElementById('s-sha').textContent = sha;
+      document.getElementById('footer-sha').textContent = sha;
+      document.getElementById('live-status').textContent = 'Backend connected · All systems operational';
+    } catch (e) {
+      document.getElementById('live-status').textContent = 'Backend unreachable';
+      document.getElementById('live-status').style.color = '#ff6b35';
+    }
+  }
+
+  async function fetchPipeline() {
+    const container = document.getElementById('pipeline-steps');
+    try {
+      const res = await fetch('/api/pipeline');
+      const data = await res.json();
+      container.innerHTML = '';
+      data.pipeline.forEach((step, i) => {
+        const isLast = i === data.pipeline.length - 1;
+        const div = document.createElement('div');
+        div.className = 'pipeline-step';
+        div.style.animationDelay = `${i * 0.1}s`;
+        div.innerHTML = `
+          ${!isLast ? '<div class="step-line"></div>' : ''}
+          <div class="step-num ${isLast ? 'you' : ''}">${step.step}</div>
+          <div class="step-content">
+            <div class="step-name">${step.name}</div>
+            <div class="step-detail">${step.detail}</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    } catch (e) {
+      container.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:#ff6b35">Could not load pipeline data</div>';
+    }
+  }
+
+  // Init
+  fetchIP();
+  fetchStatus();
+  fetchPipeline();
+</script>
+</body>
+</html>
