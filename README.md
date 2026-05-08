@@ -8,7 +8,7 @@ The focus is **system correctness, reproducibility, and automation** — not toy
  
 ## 🌐 Live Demo
  
-**[http://100.31.109.226](http://100.31.109.226)**
+**[http://44.220.146.167](http://44.220.146.167)**
  
 Open it and you will see:
 - Your real IP address — fetched live from the Python backend
